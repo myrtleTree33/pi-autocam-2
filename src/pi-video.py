@@ -19,8 +19,8 @@ camera_resolution = (160,90)
 camera_format = 'h264'
 camera_quality = 15
 camera_bitrate = 1000000
-camera_start = (08, 00)
-camera_end = (19, 00)
+camera_start = (8, 0)
+camera_end = (19, 0)
 camera_time_diff = -1
 file_life_span = 60 * 60 * 24 * 10   # 10 days
 
