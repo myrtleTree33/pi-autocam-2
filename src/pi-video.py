@@ -71,7 +71,7 @@ def get_params(fps, width, height, videobitrate, start, end):
     Simple program to take pictures
     """
 
-	def calc_time_diff(startTuple, endTuple):
+    def calc_time_diff(startTuple, endTuple):
         """
         Retrieves the number of seconds between 2 time tuples
         """
