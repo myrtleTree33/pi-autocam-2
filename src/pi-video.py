@@ -66,7 +66,7 @@ def make_timestamp():
 @click.option('--end', default='1800', help='Video end time')
 @click.option('--id', default='000', help='Camera ID')
 @click.option('--filelifespan', default=60 * 60 * 24 * 10, help='Maximum lifespan of each file')
-def get_params(fps, width, height, videobitrate, start, end):
+def get_params(fps, width, height, bitrate, start, end, id, filelifespan):
     """
     Simple program to take pictures
     """
