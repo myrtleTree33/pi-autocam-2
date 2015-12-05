@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import click
+import os
 import picamera
 import time
 from threading import Thread
@@ -43,9 +44,11 @@ def get_timestamp():
 def take_video():
     global running
     global camera
+    print 'Starting capture..'
     camera.start_recording(get_timestamp() + '.h264', format=camera_format, quality=camera_quality, bitrate=camera_bitrate)
     camera.wait_recording(camera_time_diff)
     camera.stop_recording()
+    print 'Ending capture..'
     running = False
 
 
@@ -66,7 +69,7 @@ def make_timestamp():
 @click.option('--end', default='1800', help='Video end time')
 @click.option('--id', default='000', help='Camera ID')
 @click.option('--filelifespan', default=60 * 60 * 24 * 10, help='Maximum lifespan of each file')
-def get_params(fps, width, height, bitrate, start, end, id, filelifespan):
+def prog(fps, width, height, bitrate, start, end, id, filelifespan):
     """
     Simple program to take pictures
     """
@@ -76,18 +79,26 @@ def get_params(fps, width, height, bitrate, start, end, id, filelifespan):
         Retrieves the number of seconds between 2 time tuples
         """
         print startTuple, endTuple
-        start = datetime.datetime(year=2014, month=2, day=14, hour=startTuple[0], minute=startTuple[1])
-        end = datetime.datetime(year=2014, month=2, day=14, hour=endTuple[0], minute=endTuple[1])
+        start = datetime(year=2014, month=2, day=14, hour=startTuple[0], minute=startTuple[1])
+        end = datetime(year=2014, month=2, day=14, hour=endTuple[0], minute=endTuple[1])
         secs = (end - start).total_seconds()
         print('Running for %d secs..' % (secs))
         return secs
+
+    global camera_fps
+    global camera_resolution
+    global camera_bitrate
+    global camera_start
+    global camera_end
+    global camera_time_diff
+    global file_life_span
 
     camera_fps = fps
     camera_resolution = (width, height)
     camera_bitrate = bitrate
     camera_start = (int(start[:2]), int(start[2:]))
     camera_end = (int(end[:2]), int(end[2:]))
-    camera_time_diff = calc_time_diff(startTuple, endTuple)
+    camera_time_diff = calc_time_diff(camera_start, camera_end)
     file_life_span = filelifespan
 
     def perform_checks():
@@ -112,11 +123,19 @@ def get_params(fps, width, height, bitrate, start, end, id, filelifespan):
 
     perform_checks()
 
+    ## Run the daemons ----------
+    print file_life_span
+    print GARBAGE_CHECK_TIME_SECS
+    init_garbage_daemon('./rec', file_life_span, GARBAGE_CHECK_TIME_SECS)
+    init_camera_daemon()
+    ## --------------------------
+
 
 def init_garbage_daemon(folder, lifespan_secs, interval_secs):
     """
     Initializes the garbage daemon
     """
+    print 'all good to go!'
 
     def clear_old_files(folder, lifespan_secs):
         """
@@ -142,6 +161,7 @@ def init_garbage_daemon(folder, lifespan_secs, interval_secs):
 
 
 def run_video_job(time_diff):
+    print 'video called!!!!!'
     thread_video = Thread(target=take_video)
     thread_timestamp = Thread(target=make_timestamp)
 
@@ -154,14 +174,11 @@ def run_video_job(time_diff):
 
 def init_camera_daemon():
     # runs scheduled capture from starttime to endtime daily
+    print camera_start
     job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
     sched.start()
 
 
 if __name__ == '__main__':
-    get_params()
+    prog()
 
-    ## Run the daemons ----------
-    init_garbage_daemon('./rec', file_life_span, GARBAGE_CHECK_TIME_SECS)
-    init_camera_daemon()
-    ## --------------------------
