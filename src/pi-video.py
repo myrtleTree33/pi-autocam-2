@@ -37,7 +37,7 @@ running = True
 
 
 def get_timestamp():
-	return '#' + camera_id + '_' + str(datetime.now().strftime('%Y-%m-%d_%H:%M:%S'))
+    return '#' + camera_id + '_' + str(datetime.now().strftime('%Y-%m-%d_%H:%M:%S'))
 
 
 def take_video():
@@ -72,45 +72,45 @@ def get_params(fps, width, height, videobitrate, start, end):
     """
 
 	def calc_time_diff(startTuple, endTuple):
-	    """
-	    Retrieves the number of seconds between 2 time tuples
-	    """
-	    print startTuple, endTuple
-	    start = datetime.datetime(year=2014, month=2, day=14, hour=startTuple[0], minute=startTuple[1])
-	    end = datetime.datetime(year=2014, month=2, day=14, hour=endTuple[0], minute=endTuple[1])
-	    secs = (end - start).total_seconds()
-	    print('Running for %d secs..' % (secs))
-	    return secs
+        """
+        Retrieves the number of seconds between 2 time tuples
+        """
+        print startTuple, endTuple
+        start = datetime.datetime(year=2014, month=2, day=14, hour=startTuple[0], minute=startTuple[1])
+        end = datetime.datetime(year=2014, month=2, day=14, hour=endTuple[0], minute=endTuple[1])
+        secs = (end - start).total_seconds()
+        print('Running for %d secs..' % (secs))
+        return secs
 
-	camera_fps = fps
-	camera_resolution = (width, height)
-	camera_bitrate = bitrate
-	camera_start = (int(start[:2]), int(start[2:]))
-	camera_end = (int(end[:2]), int(end[2:]))
+    camera_fps = fps
+    camera_resolution = (width, height)
+    camera_bitrate = bitrate
+    camera_start = (int(start[:2]), int(start[2:]))
+    camera_end = (int(end[:2]), int(end[2:]))
     camera_time_diff = calc_time_diff(startTuple, endTuple)
-	file_life_span = filelifespan
+    file_life_span = filelifespan
 
-	def perform_checks():
-		def check_fps():
-		    if (camera_fps < 2):
-		        raise ValueError('FPS is too low.  Please choose a higher FPS.')
-		        sys.exit(-1)
+    def perform_checks():
+        def check_fps():
+            if (camera_fps < 2):
+                raise ValueError('FPS is too low.  Please choose a higher FPS.')
+                sys.exit(-1)
 
-		def check_aspect_ratio():
-		    if (float(16) / 9) != (float(width) / height):
-		        raise ValueError('Aspect ratio not in 16:9.  Please set accordingly.')
-		        sys.exit(-1)
+        def check_aspect_ratio():
+            if (float(16) / 9) != (float(width) / height):
+                raise ValueError('Aspect ratio not in 16:9.  Please set accordingly.')
+                sys.exit(-1)
 
-		def check_time_diff():
-		    if (camera_time_diff < 0):
-		        raise ValueError('EndTime is earlier than StartTime.  Please correct!')
-		        sys.exit(-1)
+        def check_time_diff():
+            if (camera_time_diff < 0):
+                raise ValueError('EndTime is earlier than StartTime.  Please correct!')
+                sys.exit(-1)
 
-		check_fps()
-		check_aspect_ratio()
-		check_time_diff()
+        check_fps()
+        check_aspect_ratio()
+        check_time_diff()
 
-	perform_checks()
+    perform_checks()
 
 
 def init_garbage_daemon(folder, lifespan_secs, interval_secs):
@@ -137,7 +137,7 @@ def init_garbage_daemon(folder, lifespan_secs, interval_secs):
             time.sleep(interval_secs)
 
     thread = Thread(target=garbage_daemon, args=(folder, lifespan_secs, interval_secs))
-	print 'Garbage daemon running..'
+    print 'Garbage daemon running..'
     thread.start()
 
 
@@ -159,9 +159,9 @@ def init_camera_daemon():
 
 
 if __name__ == '__main__':
-	get_params()
+    get_params()
 
     ## Run the daemons ----------
     init_garbage_daemon('./rec', file_life_span, GARBAGE_CHECK_TIME_SECS)
-	init_camera_daemon()
+    init_camera_daemon()
     ## --------------------------
