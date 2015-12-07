@@ -24,6 +24,7 @@ camera_start = (8, 0)
 camera_end = (19, 0)
 camera_time_diff = -1
 file_life_span = 60 * 60 * 24 * 10   # 10 days
+recording_directory = './rec/'
 
 ## Global objects
 camera = picamera.PiCamera()
@@ -69,7 +70,8 @@ def make_timestamp():
 @click.option('--end', default='1800', help='Video end time')
 @click.option('--id', default='000', help='Camera ID')
 @click.option('--filelifespan', default=60 * 60 * 24 * 10, help='Maximum lifespan of each file')
-def prog(fps, width, height, bitrate, start, end, id, filelifespan):
+@click.option('--recorddir', default='./rec/', help='The directory to store recordings to')
+def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
     """
     Simple program to take pictures
     """
@@ -92,6 +94,7 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan):
     global camera_end
     global camera_time_diff
     global file_life_span
+    global recording_directory
 
     camera_fps = fps
     camera_resolution = (width, height)
@@ -100,6 +103,7 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan):
     camera_end = (int(end[:2]), int(end[2:]))
     camera_time_diff = calc_time_diff(camera_start, camera_end)
     file_life_span = filelifespan
+    recording_directory = recorddir
 
     def perform_checks():
         def check_fps():
@@ -126,7 +130,7 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan):
     ## Run the daemons ----------
     print file_life_span
     print GARBAGE_CHECK_TIME_SECS
-    init_garbage_daemon('./rec', file_life_span, GARBAGE_CHECK_TIME_SECS)
+    init_garbage_daemon(recording_directory, file_life_span, GARBAGE_CHECK_TIME_SECS)
     init_camera_daemon()
     ## --------------------------
 
