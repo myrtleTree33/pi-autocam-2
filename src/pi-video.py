@@ -10,8 +10,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 class ForkedOutput(object):
     """This forks output into a file, and a video stream."""
-    def __init__(self):
-        super(self, file_name).__init__()
+    def __init__(self, file_name):
         self.file = io.open(file_name, 'wb')
         self.stream = io.BytesIO()
 
