@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import io
 import click
 import os
 import picamera
@@ -12,19 +13,20 @@ class ForkedOutput(object):
     """This forks output into a file, and a video stream."""
     def __init__(self, file_name):
         self.file = io.open(file_name, 'wb')
-        self.stream = io.BytesIO()
+        #self.stream = io.BytesIO()
 
     def write(self, buff):
         self.file.write(buff)
-        self.stream.write(buff)
+        #self.stream.write(buff)
 
-    def flush(self, buff):
-        self.file.flush(buff)
-        self.stream.flush(buff)
+    def flush(self):
+        self.file.flush()
+        #self.stream.flush()
 
     def close(self):
-        self.file.close()
-        self.sock.close()
+        pass
+        #self.file.close()
+        #self.sock.close()
 
 
 ## Constants here
@@ -61,7 +63,7 @@ def get_timestamp():
     return '#' + camera_id + '_' + str(datetime.now().strftime('%Y-%m-%d_%H:%M:%S'))
 
 
-def take_video():
+def take_video(duration):
     global running
     global camera
     global recording_directory
@@ -71,7 +73,7 @@ def take_video():
     output = ForkedOutput(recording_name)
 
     camera.start_recording(output, format=camera_format, quality=camera_quality, bitrate=camera_bitrate)
-    camera.wait_recording(camera_time_diff)
+    camera.wait_recording(duration)
     camera.stop_recording()
     output.close()
     print 'Ending capture..'
@@ -192,16 +194,16 @@ def init_garbage_daemon(folder, lifespan_secs, interval_secs):
     thread.start()
 
 
-def run_video_job(time_diff):
+def run_video_job(duration):
     print 'video called!!!!!'
-    thread_video = Thread(target=take_video)
+    thread_video = Thread(target=take_video, args=(duration,))
     thread_timestamp = Thread(target=make_timestamp)
 
     thread_video.start()
     thread_timestamp.start()
     thread_timestamp.join()
 
-    print CAMERA_DONE_TEXT + ' ('+ make_timestamp + ')'
+    print CAMERA_DONE_TEXT + ' ('+ get_timestamp() + ')'
 
 
 def init_camera_daemon():

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import io
 import click
 import sys
 import time
