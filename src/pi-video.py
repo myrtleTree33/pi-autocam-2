@@ -45,8 +45,11 @@ def get_timestamp():
 def take_video():
     global running
     global camera
+    global recording_directory
+
     print 'Starting capture..'
-    camera.start_recording(get_timestamp() + '.h264', format=camera_format, quality=camera_quality, bitrate=camera_bitrate)
+    recording_name = recording_directory + get_timestamp() + '.h264'
+    camera.start_recording(recording_name, format=camera_format, quality=camera_quality, bitrate=camera_bitrate)
     camera.wait_recording(camera_time_diff)
     camera.stop_recording()
     print 'Ending capture..'
@@ -104,6 +107,9 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
     camera_time_diff = calc_time_diff(camera_start, camera_end)
     file_life_span = filelifespan
     recording_directory = recorddir
+    # check for proper delimiter
+    if recording_directory[-1] != '/':
+        recording_directory = recording_directory + '/'
 
     def perform_checks():
         def check_fps():
