@@ -208,8 +208,11 @@ def run_video_job(time_diff):
 def init_camera_daemon():
     # runs scheduled capture from starttime to endtime daily
     print camera_start
-    job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
-    sched.start()
+    ## TODO Uncomment when done ------
+    #job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
+    #sched.start()
+    # / TODO -------------------------
+    run_video_job(10) # run for 10 secs
 
 
 if __name__ == '__main__':
