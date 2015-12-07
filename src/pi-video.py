@@ -8,6 +8,26 @@ from threading import Thread
 from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+class ForkedOutput(object):
+    """This forks output into a file, and a video stream."""
+    def __init__(self):
+        super(ForkedOutput, file_name).__init__()
+        self.file = io.open(file_name, 'wb')
+        self.stream = io.BytesIO()
+
+    def write(self, buff):
+        self.file.write(buff)
+        self.stream.write(buff)
+
+    def flush(self, buff):
+        self.file.flush(buff)
+        self.stream.flush(buff)
+
+    def close(self):
+        self.file.close()
+        self.sock.close()
+
+
 ## Constants here
 CAMERA_DONE_TEXT = 'Done!'
 CAMERA_TEXT_SIZE = 6
@@ -49,9 +69,12 @@ def take_video():
 
     print 'Starting capture..'
     recording_name = recording_directory + get_timestamp() + '.h264'
-    camera.start_recording(recording_name, format=camera_format, quality=camera_quality, bitrate=camera_bitrate)
+    output = ForkedOutput(recording_name)
+
+    camera.start_recording(output, format=camera_format, quality=camera_quality, bitrate=camera_bitrate)
     camera.wait_recording(camera_time_diff)
     camera.stop_recording()
+    output.close()
     print 'Ending capture..'
     running = False
 
@@ -191,4 +214,3 @@ def init_camera_daemon():
 
 if __name__ == '__main__':
     prog()
-
