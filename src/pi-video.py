@@ -8,6 +8,7 @@ import time
 from threading import Thread
 from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
+from flask import Flask
 
 class ForkedOutput(object):
     """This forks output into a file, and a video stream."""
@@ -17,6 +18,7 @@ class ForkedOutput(object):
 
     def write(self, buff):
         self.file.write(buff)
+        #print len(buff)
         #self.stream.write(buff)
 
     def flush(self):
@@ -50,6 +52,7 @@ recording_directory = './rec/'
 ## Global objects
 camera = picamera.PiCamera()
 sched = BlockingScheduler()
+output = None
 
 
 camera.resolution = camera_resolution
@@ -67,6 +70,7 @@ def take_video(duration):
     global running
     global camera
     global recording_directory
+    global output
 
     print 'Starting capture..'
     recording_name = recording_directory + get_timestamp() + '.h264'
@@ -161,6 +165,7 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
     print file_life_span
     print GARBAGE_CHECK_TIME_SECS
     init_garbage_daemon(recording_directory, file_life_span, GARBAGE_CHECK_TIME_SECS)
+    init_server()
     init_camera_daemon()
     ## --------------------------
 
@@ -215,6 +220,24 @@ def init_camera_daemon():
     # / TODO -------------------------
     run_video_job(10) # run for 10 secs
 
+
+def server():
+    print 'server started.'
+    app = Flask(__name__)
+
+    @app.route('/')
+    def root():
+        print 'triggered'
+        return 'hello world!'
+
+    app.run(host='0.0.0.0')
+
+
+def init_server():
+    thread_server = Thread(target=server)
+    thread_server.start()
+    #thread_server.join()
+    
 
 if __name__ == '__main__':
     prog()
