@@ -3,6 +3,7 @@
 import io
 import click
 import os
+import collections
 import picamera
 from picamera.array import PiRGBArray
 import time
@@ -11,24 +12,35 @@ from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from flask import Flask, render_template, Response
 
+class BufferedImage(object):
+    def __init__(self, size):
+        self.q = collections.deque()
+        self.size = size
+
+
+    def put(self, image_obj):
+        while len(self.q) >= self.size:
+            img = self.q.popleft()
+            img.close()
+        self.q.append(image_obj)
+
+
+    def get(self):
+        if len(self.q) == 0:
+            return None
+        return self.q[0]
+        
+
+
 class ForkedOutput(object):
     """This forks output into a file, and a video stream."""
     def __init__(self, file_name):
         self.file = io.open(file_name, 'wb')
         self.stream = io.BytesIO()
-        self.size = 0
-        self.i = 0
 
     def write(self, buff):
         self.file.write(buff)
-        #self.stream.close()
-        #self.stream = io.BytesIO()
         self.stream.write(buff)
-        #self.size = len(buff)
-        f = open('./rec/rec' + str(self.i) + '.jpg', 'wb')
-        f.write(buff)
-        f.close()
-        self.i = self.i + 1
 
     def flush(self):
         self.file.flush()
@@ -65,6 +77,7 @@ recording_directory = './rec/'
 camera = picamera.PiCamera()
 sched = BlockingScheduler()
 output = None
+image_stream = BufferedImage(2)
 
 
 camera.resolution = camera_resolution
@@ -83,6 +96,8 @@ def take_video(duration):
     global camera
     global recording_directory
     global output
+    global image_stream
+    time_start = datetime.now()
 
     print 'Starting capture..'
     recording_name = recording_directory + get_timestamp() + '.h264'
@@ -96,7 +111,11 @@ def take_video(duration):
     #stream = io.BytesIO()
     #data = camera.capture(stream, format='jpg', splitter_port=2)
     camera.start_preview(fullscreen=False, window=(50,50,160,90))
-    camera.wait_recording(duration)
+    while (datetime.now() - time_start).seconds < duration:
+        camera.wait_recording(0.1)
+        stream = io.BytesIO()
+        camera.capture(stream, use_video_port=True, format='jpeg')
+        image_stream.put(stream)
     camera.stop_recording()
     output.close()
     print 'Ending capture..'
@@ -241,15 +260,14 @@ def init_camera_daemon():
 
 
 def server():
-    global output
+    global output, image_stream
     print 'server started.'
     app = Flask(__name__)
 
     def grab_frame(output_obj):
        while True:
-           frame = output_obj.grab()
-           #yield(b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-           yield(b'--frame\r\nContent-Type: video/H264\r\n\r\n' + frame + b'\r\n')
+           frame = image_stream.get().getvalue()
+           yield(b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
     @app.route('/')
     def index():
