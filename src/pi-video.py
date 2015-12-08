@@ -279,7 +279,7 @@ def server():
         return Response(grab_frame(output), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', threaded=True)
 
 
 def init_server():
