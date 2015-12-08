@@ -14,21 +14,24 @@ class ForkedOutput(object):
     """This forks output into a file, and a video stream."""
     def __init__(self, file_name):
         self.file = io.open(file_name, 'wb')
-        #self.stream = io.BytesIO()
+        self.stream = io.BytesIO()
 
     def write(self, buff):
         self.file.write(buff)
-        #print len(buff)
-        #self.stream.write(buff)
+        self.stream.close()
+        self.stream = io.BytesIO()
+        self.stream.write(buff)
 
     def flush(self):
         self.file.flush()
-        #self.stream.flush()
+        self.stream.flush()
+
+    def grab(self):
+        return self.stream.readall()
 
     def close(self):
-        pass
         #self.file.close()
-        #self.sock.close()
+        self.stream.close()
 
 
 ## Constants here
@@ -222,13 +225,24 @@ def init_camera_daemon():
 
 
 def server():
+    global output
     print 'server started.'
     app = Flask(__name__)
 
+    def grab_frame(output_obj):
+       while True:
+           frame = output_obj.grab()
+           yield(b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
     @app.route('/')
-    def root():
+    def index():
         print 'triggered'
-        return 'hello world!'
+        return render_template('index.html')
+
+    @app.route('/video_feed')
+    def video_feed():
+        return Response(grab_frame(output), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
     app.run(host='0.0.0.0')
 
@@ -237,7 +251,7 @@ def init_server():
     thread_server = Thread(target=server)
     thread_server.start()
     #thread_server.join()
-    
+
 
 if __name__ == '__main__':
     prog()
