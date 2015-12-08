@@ -8,26 +8,29 @@ import time
 from threading import Thread
 from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
-from flask import Flask
+from flask import Flask, render_template, Response
 
 class ForkedOutput(object):
     """This forks output into a file, and a video stream."""
     def __init__(self, file_name):
         self.file = io.open(file_name, 'wb')
         self.stream = io.BytesIO()
+        self.size = 0
 
     def write(self, buff):
         self.file.write(buff)
-        self.stream.close()
-        self.stream = io.BytesIO()
+        #self.stream.close()
+        #self.stream = io.BytesIO()
         self.stream.write(buff)
+        #self.size = len(buff)
 
     def flush(self):
         self.file.flush()
         self.stream.flush()
 
     def grab(self):
-        return self.stream.readall()
+        print 'num bytes: ' + str(self.size)
+        return self.stream.read()
 
     def close(self):
         #self.file.close()
@@ -221,7 +224,7 @@ def init_camera_daemon():
     #job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
     #sched.start()
     # / TODO -------------------------
-    run_video_job(10) # run for 10 secs
+    run_video_job(5000) # run for 5000 secs
 
 
 def server():
@@ -232,7 +235,8 @@ def server():
     def grab_frame(output_obj):
        while True:
            frame = output_obj.grab()
-           yield(b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+           #yield(b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+           yield(b'--frame\r\nContent-Type: video/H264\r\n\r\n' + frame + b'\r\n')
 
     @app.route('/')
     def index():
