@@ -4,6 +4,7 @@ import io
 import click
 import os
 import picamera
+from picamera.array import PiRGBArray
 import time
 from threading import Thread
 from datetime import datetime
@@ -16,6 +17,7 @@ class ForkedOutput(object):
         self.file = io.open(file_name, 'wb')
         self.stream = io.BytesIO()
         self.size = 0
+        self.i = 0
 
     def write(self, buff):
         self.file.write(buff)
@@ -23,6 +25,10 @@ class ForkedOutput(object):
         #self.stream = io.BytesIO()
         self.stream.write(buff)
         #self.size = len(buff)
+        f = open('./rec/rec' + str(self.i) + '.jpg', 'wb')
+        f.write(buff)
+        f.close()
+        self.i = self.i + 1
 
     def flush(self):
         self.file.flush()
@@ -82,7 +88,14 @@ def take_video(duration):
     recording_name = recording_directory + get_timestamp() + '.h264'
     output = ForkedOutput(recording_name)
 
-    camera.start_recording(output, format=camera_format, quality=camera_quality, bitrate=camera_bitrate)
+    #rawCapture = PiRGBArray(camera, size=(160,90))
+
+    camera.start_recording(output, format=camera_format, quality=camera_quality, bitrate=camera_bitrate, splitter_port=1)
+    #for frame in camera.capture_continuous(rawCapture, format("bgr"),use_video_port=True,splitter_port=2):
+    #    print 'hihi'
+    #stream = io.BytesIO()
+    #data = camera.capture(stream, format='jpg', splitter_port=2)
+    camera.start_preview(fullscreen=False, window=(50,50,160,90))
     camera.wait_recording(duration)
     camera.stop_recording()
     output.close()
@@ -224,7 +237,7 @@ def init_camera_daemon():
     #job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
     #sched.start()
     # / TODO -------------------------
-    run_video_job(5000) # run for 5000 secs
+    run_video_job(100) # run for 10 secs
 
 
 def server():

@@ -19,14 +19,14 @@ camera = picamera.PiCamera()
 
 camera.resolution = camera_resolution
 camera.framerate = camera_fps
-camera.annotate_text_size = CAMERA_TEXT_SIZE
+camera.annotate_text_size = 10
 
 def preview_video():
     global camera
 
     print 'Starting capture..'
-    recording_name = recording_directory + get_timestamp() + '.h264'
     camera.start_preview()
+    time.sleep(10)
     print 'Ending capture..'
 
 if __name__ == '__main__':
