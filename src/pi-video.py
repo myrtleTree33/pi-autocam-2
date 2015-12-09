@@ -27,42 +27,6 @@ from flask import Flask, render_template, Response
 VERSION_NUMBER = '1.0.1'
 ## / VERSION NUMBER
 
-## Constants here
-STARTING_CAPTURE_STRING = 'Starting capture..'
-ENDING_CAPTURE_STRING = 'Ending capture..'
-CAMERA_DONE_TEXT = 'Done!'
-CAMERA_TEXT_SIZE = 6
-GARBAGE_CHECK_TIME_SECS = 10
-BUFFERED_IMAGE_MAX_BUFFER_SIZE = 2
-## / Constants here
-
-## Global default command parameters here
-camera_id = "000"
-camera_fps = 8
-camera_resolution = (160,90)
-camera_format = 'h264'
-camera_quality = 15
-camera_bitrate = 1000000
-camera_start = (8, 0)
-camera_end = (19, 0)
-camera_time_diff = -1
-file_life_span = 60 * 60 * 24 * 10   # 10 days
-recording_directory = './rec/'
-## / Global default command parameters here
-
-## Global objects
-camera = picamera.PiCamera()
-sched = BlockingScheduler()
-output = None
-image_stream = BufferedImage(BUFFERED_IMAGE_MAX_BUFFER_SIZE)
-
-camera.resolution = camera_resolution
-camera.framerate = camera_fps
-camera.annotate_text_size = CAMERA_TEXT_SIZE
-
-running = True
-## / Global objects
-
 
 class BufferedImage(object):
     """
@@ -106,6 +70,43 @@ class ForkedOutput(object):
 
     def close(self):
         pass
+
+
+## Constants here
+STARTING_CAPTURE_STRING = 'Starting capture..'
+ENDING_CAPTURE_STRING = 'Ending capture..'
+CAMERA_DONE_TEXT = 'Done!'
+CAMERA_TEXT_SIZE = 6
+GARBAGE_CHECK_TIME_SECS = 10
+BUFFERED_IMAGE_MAX_BUFFER_SIZE = 2
+## / Constants here
+
+## Global default command parameters here
+camera_id = "000"
+camera_fps = 8
+camera_resolution = (160,90)
+camera_format = 'h264'
+camera_quality = 15
+camera_bitrate = 1000000
+camera_start = (8, 0)
+camera_end = (19, 0)
+camera_time_diff = -1
+file_life_span = 60 * 60 * 24 * 10   # 10 days
+recording_directory = './rec/'
+## / Global default command parameters here
+
+## Global objects
+camera = picamera.PiCamera()
+sched = BlockingScheduler()
+output = None
+image_stream = BufferedImage(BUFFERED_IMAGE_MAX_BUFFER_SIZE)
+
+camera.resolution = camera_resolution
+camera.framerate = camera_fps
+camera.annotate_text_size = CAMERA_TEXT_SIZE
+
+running = True
+## / Global objects
 
 
 def get_timestamp():
@@ -164,6 +165,8 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
     """
     Simple program to take pictures
     """
+
+    print 'Running version ' + VERSION_NUMBER + '.'
 
     def calc_time_diff(startTuple, endTuple):
         """
