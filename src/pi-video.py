@@ -1,5 +1,16 @@
 # -*- coding: utf-8 -*-
 
+"""
+Author: Joel Haowen TONG
+Description: Deploys Raspberry Pi and camera as a security camera unit.
+Features:
+- Records in H264 format
+- Ability to remove older videos exceeding specified lifetime
+- Able to both display live video feed while recording H264
+- Able to view live video feed at http://localhost:5000
+- Able to timestamp and show camera ID stamps on video
+"""
+
 import io
 import click
 import os
@@ -12,7 +23,54 @@ from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from flask import Flask, render_template, Response
 
+## VERSION NUMBER
+VERSION_NUMBER = '1.0.1'
+## / VERSION NUMBER
+
+## Constants here
+STARTING_CAPTURE_STRING = 'Starting capture..'
+ENDING_CAPTURE_STRING = 'Ending capture..'
+CAMERA_DONE_TEXT = 'Done!'
+CAMERA_TEXT_SIZE = 6
+GARBAGE_CHECK_TIME_SECS = 10
+BUFFERED_IMAGE_MAX_BUFFER_SIZE = 2
+## / Constants here
+
+## Global default command parameters here
+camera_id = "000"
+camera_fps = 8
+camera_resolution = (160,90)
+camera_format = 'h264'
+camera_quality = 15
+camera_bitrate = 1000000
+camera_start = (8, 0)
+camera_end = (19, 0)
+camera_time_diff = -1
+file_life_span = 60 * 60 * 24 * 10   # 10 days
+recording_directory = './rec/'
+## / Global default command parameters here
+
+## Global objects
+camera = picamera.PiCamera()
+sched = BlockingScheduler()
+output = None
+image_stream = BufferedImage(BUFFERED_IMAGE_MAX_BUFFER_SIZE)
+
+camera.resolution = camera_resolution
+camera.framerate = camera_fps
+camera.annotate_text_size = CAMERA_TEXT_SIZE
+
+running = True
+## / Global objects
+
+
 class BufferedImage(object):
+    """
+    Queue data structure that ensures
+    image is not corrupted when writing or
+    reading.  This is done by ensuring an
+    image is always in the queue pipeline.
+    """
     def __init__(self, size):
         self.q = collections.deque()
         self.size = size
@@ -29,62 +87,25 @@ class BufferedImage(object):
         if len(self.q) == 0:
             return None
         return self.q[0]
-        
 
 
 class ForkedOutput(object):
-    """This forks output into a file, and a video stream."""
+    """
+    This is a custom output that can
+    be used for forking data, to be
+    used elsewhere.
+    """
     def __init__(self, file_name):
         self.file = io.open(file_name, 'wb')
-        self.stream = io.BytesIO()
 
     def write(self, buff):
         self.file.write(buff)
-        self.stream.write(buff)
 
     def flush(self):
         self.file.flush()
-        self.stream.flush()
-
-    def grab(self):
-        print 'num bytes: ' + str(self.size)
-        return self.stream.read()
 
     def close(self):
-        #self.file.close()
-        self.stream.close()
-
-
-## Constants here
-CAMERA_DONE_TEXT = 'Done!'
-CAMERA_TEXT_SIZE = 6
-GARBAGE_CHECK_TIME_SECS = 10
-
-## Globals here
-camera_id = "000"
-camera_fps = 8
-camera_resolution = (160,90)
-camera_format = 'h264'
-camera_quality = 15
-camera_bitrate = 1000000
-camera_start = (8, 0)
-camera_end = (19, 0)
-camera_time_diff = -1
-file_life_span = 60 * 60 * 24 * 10   # 10 days
-recording_directory = './rec/'
-
-## Global objects
-camera = picamera.PiCamera()
-sched = BlockingScheduler()
-output = None
-image_stream = BufferedImage(2)
-
-
-camera.resolution = camera_resolution
-camera.framerate = camera_fps
-camera.annotate_text_size = CAMERA_TEXT_SIZE
-
-running = True
+        pass
 
 
 def get_timestamp():
@@ -99,18 +120,17 @@ def take_video(duration):
     global image_stream
     time_start = datetime.now()
 
-    print 'Starting capture..'
+    print STARTING_CAPTURE_STRING
     recording_name = recording_directory + get_timestamp() + '.h264'
     output = ForkedOutput(recording_name)
 
-    #rawCapture = PiRGBArray(camera, size=(160,90))
-
     camera.start_recording(output, format=camera_format, quality=camera_quality, bitrate=camera_bitrate, splitter_port=1)
-    #for frame in camera.capture_continuous(rawCapture, format("bgr"),use_video_port=True,splitter_port=2):
-    #    print 'hihi'
-    #stream = io.BytesIO()
-    #data = camera.capture(stream, format='jpg', splitter_port=2)
+
+    ## Enable for live preview in terminal
     camera.start_preview(fullscreen=False, window=(50,50,160,90))
+
+    ## This hack takes a photo in between video snapshots,
+    ## using the video port, such that is is barely discernible.
     while (datetime.now() - time_start).seconds < duration:
         camera.wait_recording(0.1)
         stream = io.BytesIO()
@@ -118,7 +138,7 @@ def take_video(duration):
         image_stream.put(stream)
     camera.stop_recording()
     output.close()
-    print 'Ending capture..'
+    print ENDING_CAPTURE_STRING
     running = False
 
 
@@ -200,8 +220,6 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
     perform_checks()
 
     ## Run the daemons ----------
-    print file_life_span
-    print GARBAGE_CHECK_TIME_SECS
     init_garbage_daemon(recording_directory, file_life_span, GARBAGE_CHECK_TIME_SECS)
     init_server()
     init_camera_daemon()
@@ -212,8 +230,6 @@ def init_garbage_daemon(folder, lifespan_secs, interval_secs):
     """
     Initializes the garbage daemon
     """
-    print 'all good to go!'
-
     def clear_old_files(folder, lifespan_secs):
         """
         Removes old files that are no longer used.
@@ -226,7 +242,6 @@ def init_garbage_daemon(folder, lifespan_secs, interval_secs):
                     print 'Removing file ' + f + '..'
                     os.remove(long_file_path)
 
-
     def garbage_daemon(folder, lifespan_secs, interval_secs):
         while True:
             clear_old_files(folder, lifespan_secs)
@@ -238,7 +253,6 @@ def init_garbage_daemon(folder, lifespan_secs, interval_secs):
 
 
 def run_video_job(duration):
-    print 'video called!!!!!'
     thread_video = Thread(target=take_video, args=(duration,))
     thread_timestamp = Thread(target=make_timestamp)
 
@@ -261,7 +275,7 @@ def init_camera_daemon():
 
 def server():
     global output, image_stream
-    print 'server started.'
+    print 'Live-preview server running..'
     app = Flask(__name__)
 
     def grab_frame(output_obj):
@@ -278,14 +292,12 @@ def server():
     def video_feed():
         return Response(grab_frame(output), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-
     app.run(host='0.0.0.0', threaded=True)
 
 
 def init_server():
     thread_server = Thread(target=server)
     thread_server.start()
-    #thread_server.join()
 
 
 if __name__ == '__main__':
