@@ -189,6 +189,7 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
     global camera_start
     global camera_end
     global camera_time_diff
+    global camera_id
     global file_life_span
     global recording_directory
 
@@ -198,6 +199,7 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
     camera_start = (int(start[:2]), int(start[2:]))
     camera_end = (int(end[:2]), int(end[2:]))
     camera_time_diff = calc_time_diff(camera_start, camera_end)
+    camera_id = str(id)
     file_life_span = filelifespan
     recording_directory = recorddir
     # check for proper delimiter
