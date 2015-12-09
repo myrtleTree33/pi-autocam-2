@@ -152,14 +152,14 @@ def make_timestamp():
 
 
 @click.command()
-@click.option('--fps', default=2, help='Frames per second/')
+@click.option('--fps', default=2, help='Frames per second to record')
 @click.option('--width', default=160, help='The screen capture width')
 @click.option('--height', default=90, help='The screen capture height')
-@click.option('--bitrate', default=1000000, help='The maximum video bitrate to use')
-@click.option('--start', default='0700', help='Video start time')
-@click.option('--end', default='1800', help='Video end time')
+@click.option('--bitrate', default=1000000, help='The maximum video bitrate to use.  To capture more colors, set a higher bitrate setting.')
+@click.option('--start', default='0700', help='Video start time, in 4-digit military time')
+@click.option('--end', default='1800', help='Video end time, in 4-digit military time')
 @click.option('--id', default='000', help='Camera ID')
-@click.option('--filelifespan', default=60 * 60 * 24 * 10, help='Maximum lifespan of each file')
+@click.option('--filelifespan', default=60 * 60 * 24 * 10, help='Maximum lifespan of each file in seconds, before file is deleted.')
 @click.option('--recorddir', default='./rec/', help='The directory to store recordings to')
 def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
     """
