@@ -275,7 +275,7 @@ def init_camera_daemon():
     #job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
     #sched.start()
     # / TODO -------------------------
-    run_video_job(100) # run for 10 secs
+    run_video_job(10) # run for 10 secs
 
 
 def server():

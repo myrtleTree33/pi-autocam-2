@@ -4,6 +4,9 @@
 ## Bootloader script to take videos.
 ###############################################
 
+## Create empty dir for storing recordings, if not available
+mkdir -p rec
+
 ## Script to run camcorder.
 ## In the event of failure, press ctrl + \ to dump program.
 
