@@ -3,15 +3,16 @@ PiCam
 
 ## What is
 
-Snap videos with the Pi every few seconds.
+Deploys Raspberry Pi and camera as a security camera unit.
 
 
-## Uses
+## Features
 
-- Wraps the Picam library in C.
-- Able to set screen dimensions, frame rate.
-- Removes files older than 10 days (untested)
-
+- Records in H264 format
+- Ability to remove older videos exceeding specified lifetime
+- Able to display live video feed, while recording H264 video files
+- Able to view live video feed at http://localhost:5000
+- Able to timestamp and show camera ID stamps on video
 
 
 ## Installation
@@ -21,9 +22,12 @@ Snap videos with the Pi every few seconds.
 
         $ sudo apt-get install python-pip
 
-- Install `click` with `pip`
+- Install dependencies
 
-    $ pip install click
+        $ pip install click
+        $ pip install apscheduler
+        $ pip install picamera
+        $ pip install flask
 
 
 ## Running the camera
@@ -33,11 +37,15 @@ Snap videos with the Pi every few seconds.
         $ cd src && ./start.sh
 
 - All videos are found in `rec/`
-- To turn the Pi into a server to download video files, use `SimpleHTTPServer`:
 
-        $ cd rec/ && python -m SimpleHTTPServer 3000
+
+## Live video feed
+
+- Live video feed available at http://localhost:5000
 
 
 ## Tweaking / Configuration
 
-- Edit `start.sh` values.
+- To view available parameters, tweak `start.sh` and view the help sequence
+
+      $ python pi-video.py --help

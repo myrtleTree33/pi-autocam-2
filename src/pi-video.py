@@ -3,12 +3,15 @@
 """
 Author: Joel Haowen TONG
 Description: Deploys Raspberry Pi and camera as a security camera unit.
+
 Features:
 - Records in H264 format
 - Ability to remove older videos exceeding specified lifetime
 - Able to both display live video feed while recording H264
 - Able to view live video feed at http://localhost:5000
 - Able to timestamp and show camera ID stamps on video
+
+Github: https://github.com/myrtleTree33/pi-autocam-2
 """
 
 import io
@@ -16,7 +19,6 @@ import click
 import os
 import collections
 import picamera
-from picamera.array import PiRGBArray
 import time
 from threading import Thread
 from datetime import datetime

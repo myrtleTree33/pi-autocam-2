@@ -14,5 +14,4 @@ mkdir -p rec
 ## Modify numbers as required here.
 ## Do note that screen dimensions must be in 16:9 ratio, else program fails.
 
-#python pi-video.py --fps 2 --width 160 --height 90 --start 0030 --end 2100 --bitrate 1000000 --id 000 --filelifespan 864000
 python pi-video.py --fps 2 --width 160 --height 90 --start 1042 --end 1047 --bitrate 1000000 --id 000 --filelifespan 800000
