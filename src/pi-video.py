@@ -163,7 +163,9 @@ def make_timestamp():
 @click.option('--recorddir', default='./rec/', help='The directory to store recordings to')
 def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
     """
-    Simple program to take pictures
+    Program to turn Raspberry Pi into a security camera, with live streaming.
+
+    Stream available at http://localhost:5000
     """
 
     print 'Running version ' + VERSION_NUMBER + '.'
