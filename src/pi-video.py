@@ -78,7 +78,13 @@ class ForkedOutput(object):
 STARTING_CAPTURE_STRING = 'Starting capture..'
 ENDING_CAPTURE_STRING = 'Ending capture..'
 CAMERA_DONE_TEXT = 'Done!'
-CAMERA_TEXT_SIZE = 6
+CAMERA_TEXT_SIZE = 14
+
+## Rough measurements from screen
+CAMERA_TEXT_AVERAGE_WIDTH = 7
+CAMERA_TEXT_NEWLINE_HEIGHT = 11
+CAMERA_TEXT_SPACE_WIDTH = CAMERA_TEXT_AVERAGE_WIDTH
+
 GARBAGE_CHECK_TIME_SECS = 10
 BUFFERED_IMAGE_MAX_BUFFER_SIZE = 2
 ## / Constants here
@@ -103,16 +109,22 @@ sched = BlockingScheduler()
 output = None
 image_stream = BufferedImage(BUFFERED_IMAGE_MAX_BUFFER_SIZE)
 
-camera.resolution = camera_resolution
-camera.framerate = camera_fps
-camera.annotate_text_size = CAMERA_TEXT_SIZE
-
 running = True
 ## / Global objects
 
 
 def get_timestamp():
     return '#' + camera_id + '_' + str(datetime.now().strftime('%Y-%m-%d_%H:%M:%S'))
+
+
+def make_recording_text(text):
+    """
+    This function positions text at top right corner
+    by adding spaces to text.
+    """
+    avail_left_spaces = camera_resolution[0] / CAMERA_TEXT_AVERAGE_WIDTH
+    left = ' ' * (avail_left_spaces - len(text) - 5)
+    return left + text
 
 
 def take_video(duration):
@@ -149,7 +161,7 @@ def make_timestamp():
     global running
     global camera
     while running:
-        camera.annotate_text = get_timestamp()
+        camera.annotate_text = make_recording_text(get_timestamp())
         time.sleep(0.001)
 
 
@@ -226,13 +238,22 @@ def prog(fps, width, height, bitrate, start, end, id, filelifespan, recorddir):
         check_aspect_ratio()
         check_time_diff()
 
-    perform_checks()
+    def init_camera():
+        global camera
+        camera.resolution = camera_resolution
+        camera.framerate = camera_fps
+        camera.annotate_text_size = CAMERA_TEXT_SIZE
 
-    ## Run the daemons ----------
+    ## Do the necessary initializations -------
+    perform_checks()
+    init_camera()
+    ## ----------------------------------------
+
+    ## Run the daemons ------------------------
     init_garbage_daemon(recording_directory, file_life_span, GARBAGE_CHECK_TIME_SECS)
     init_server()
     init_camera_daemon()
-    ## --------------------------
+    ## ----------------------------------------
 
 
 def init_garbage_daemon(folder, lifespan_secs, interval_secs):
@@ -276,10 +297,12 @@ def init_camera_daemon():
     # runs scheduled capture from starttime to endtime daily
     print camera_start
 
-    job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
-    sched.start()
+    ## TODO
+    ## job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
+    ## sched.start()
+    ## / TODO
 
-    # run_video_job(10) # run for 10 secs
+    run_video_job(5) # run for 5 secs
 
 
 def server():
