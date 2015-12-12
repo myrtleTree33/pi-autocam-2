@@ -26,7 +26,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from flask import Flask, render_template, Response
 
 ## VERSION NUMBER
-VERSION_NUMBER = '1.0.1'
+VERSION_NUMBER = '1.0.2'
 ## / VERSION NUMBER
 
 
@@ -297,12 +297,10 @@ def init_camera_daemon():
     # runs scheduled capture from starttime to endtime daily
     print camera_start
 
-    ## TODO
-    ## job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
-    ## sched.start()
-    ## / TODO
+    job = sched.add_job(run_video_job, 'cron', hour=int(camera_start[0]), minute=int(camera_start[1]), args=[camera_time_diff])
+    sched.start()
 
-    run_video_job(5) # run for 5 secs
+    ## run_video_job(5) # run for 5 secs
 
 
 def server():
